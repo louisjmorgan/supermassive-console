@@ -11,10 +11,10 @@ const setupJZZ = async () => {
 
 export interface Midi {
   port: Ref<any>;
-  playNoteOn: (note: number) => Promise<void>;
-  playNoteOff: (note: number) => Promise<void>;
-  playNoteTime: (note: number, wait: number) => Promise<void>;
-  flushNotes: () => Promise<void>;
+  playNoteOn: (note: number) => any;
+  playNoteOff: (note: number) => any;
+  playNoteTime: (note: number, wait: number) => any;
+  flushNotes: () => any;
 }
 
 function useMidi(): Midi {
@@ -32,19 +32,23 @@ function useMidi(): Midi {
     };
   }, []);
 
-  const playNoteOn = useCallback(async (note: number) => {
-    port.current?.send([0x90, note, 127]); // note on
-  }, []);
+  const playNoteOn = useCallback(
+    (note: number) => port.current?.send([0x90, note, 127]), // note on
+    []
+  );
 
-  const playNoteOff = useCallback(async (note: number) => {
-    port.current?.send([0x90, note, 0]); // note on
-  }, []);
+  const playNoteOff = useCallback(
+    (note: number) => port.current?.send([0x90, note, 0]), // note on
+    []
+  );
 
-  const playNoteTime = useCallback(async (note: number, wait: number) => {
-    port.current.send([0x90, note, 127]).wait(wait).send([0x90, note, 0]); // note on
-  }, []);
+  const playNoteTime = useCallback(
+    (note: number, wait: number) =>
+      port.current?.send([0x90, note, 127]).wait(wait).send([0x90, note, 0]), // note on
+    []
+  );
 
-  const flushNotes = useCallback(async () => {
+  const flushNotes = useCallback(() => {
     port.current?.allSoundOff(0);
   }, []);
 

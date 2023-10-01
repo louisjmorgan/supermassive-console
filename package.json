@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tonejs/midi": "^2.0.28",
     "jzz": "^1.7.1",
+    "jzz-midi-smf": "^1.7.9",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

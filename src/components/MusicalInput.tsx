@@ -1,6 +1,6 @@
 import { Midi } from "@/hooks/useMidi";
 import { charToMidi } from "@/lib/midi";
-import React, { KeyboardEventHandler, useCallback } from "react";
+import React, { KeyboardEventHandler, useCallback, useEffect } from "react";
 import { useDebounce } from "use-debounce";
 import { TerminalState } from "./Terminal";
 
@@ -33,6 +33,7 @@ const MusicalInput = React.forwardRef<
         return;
       }
       const key = e.key;
+      console.log(e.key.charCodeAt(0));
 
       if (DISALLOWED_KEYS.includes(key)) return;
 
@@ -72,6 +73,10 @@ const MusicalInput = React.forwardRef<
     },
     [midi, ref, processCommand, setTyping, state]
   );
+
+  useEffect(() => {
+    if (state.current === "awaiting input") setTyping(false);
+  }, [state, setTyping]);
 
   return (
     <span className="bg-black text-inherit caret-transparent inline break-all w-full">

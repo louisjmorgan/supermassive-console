@@ -1,61 +1,64 @@
 import { Midi } from "@/hooks/useMidi";
 import { charToMidi } from "@/lib/midi";
-import React, { SetStateAction, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { TerminalState } from "./Terminal";
 
-function MusicalOutput({
-  state,
-  delay,
-  midi,
-  onFinishOutput,
-  onStartOutput,
-}: {
-  state: TerminalState;
-  delay: number;
-  midi: Midi;
-  onFinishOutput: () => void;
-  onStartOutput: () => void;
-}) {
-  const [typedText, setTypedText] = useState("");
-  const [typeIndex, setTypeIndex] = useState(0);
+const MusicalOutput = React.forwardRef<
+  HTMLPreElement,
+  {
+    state: TerminalState;
+    midi: Midi;
+    onFinishOutput: () => void;
+  }
+>(({ state, midi, onFinishOutput }, ref) => {
+  const [typedText, setTypedText] = useState<typeof state.output>([]);
+  useEffect(() => {
+    if (state.current !== "outputting") return;
+    const timeouts = state.output.map((note, index) => {
+      const { time } = note;
+      return setTimeout(async () => {
+        setTypedText((prev) => [...prev, note]);
+        if (index >= state.output.length - 1) {
+          onFinishOutput();
+        }
+      }, time);
+    });
+    return () =>
+      timeouts.forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+  }, [state, midi, onFinishOutput]);
 
   useEffect(() => {
-    if (typeIndex < state.output.length) {
-      const timeout = setTimeout(() => {
-        setTypedText((prevText) => prevText + state.output[typeIndex]);
-        midi.playNoteTime(charToMidi(state.output[typeIndex]), delay);
-        setTypeIndex((prevIndex) => prevIndex + 1);
-      }, delay);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [typeIndex, delay, state.output, midi]);
+    setTypedText([]);
+  }, [state.returnIndex]);
 
   useEffect(() => {
-    if (state.current === "outputting" && typeIndex >= state.output.length) {
-      onFinishOutput();
-    }
-  }, [typeIndex, onFinishOutput, state]);
-
-  useEffect(() => {
-    setTypeIndex(0);
-    setTypedText("");
-    onStartOutput();
-  }, [state.returnIndex, onStartOutput]);
+    if (!typedText || typedText.length === 0) return;
+    const { char, duration } = typedText.slice(-1)[0];
+    midi.playNoteTime(charToMidi(char), duration);
+  }, [typedText, midi]);
 
   return (
-    <div className="h-full w-full">
+    <span className="h-full w-full break-all" ref={ref}>
       <pre>
-        {typedText}
-        <span
-          // className={currentIndex < text.length ? "cursor" : "cursor blinking"}
-          className={state.current === "outputting" ? "cursor" : ""}
-        >
-          &nbsp;
-        </span>
+        {typedText.map((note) => note.char).join("")}
+        {state.current === "outputting" ? (
+          <span
+            key="cursor"
+            className="cursor"
+            // className={currentIndex < text.length ? "cursor" : "cursor blinking"}
+          >
+            &nbsp;
+          </span>
+        ) : (
+          <span key="cursor"></span>
+        )}
       </pre>
-    </div>
+    </span>
   );
-}
+});
+
+MusicalOutput.displayName = "MusicalOutput";
 
 export default MusicalOutput;
