@@ -1,0 +1,3 @@
+[submodule "um-sequencer"]
+	path = um-sequencer
+	url = https://github.com/louisjmorgan/um-sequencer

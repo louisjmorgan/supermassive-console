@@ -1,7 +1,8 @@
 import { Midi } from "@/hooks/useMidi";
 import { charToMidi } from "@/lib/midi";
-import React, { useCallback, useEffect, useState } from "react";
-import { TerminalState } from "./Terminal";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Note, TerminalState } from "./Terminal";
+import Sequencer from "um-sequencer";
 
 const MusicalOutput = React.forwardRef<
   HTMLPreElement,
@@ -10,52 +11,24 @@ const MusicalOutput = React.forwardRef<
     midi: Midi;
     onFinishOutput: () => void;
   }
->(({ state, midi, onFinishOutput }, ref) => {
-  const [typedText, setTypedText] = useState<typeof state.output>([]);
-  useEffect(() => {
-    if (state.current !== "outputting") return;
-    const timeouts = state.output.map((note, index) => {
-      const { time } = note;
-      return setTimeout(async () => {
-        setTypedText((prev) => [...prev, note]);
-        if (index >= state.output.length - 1) {
-          onFinishOutput();
-        }
-      }, time);
-    });
-    return () =>
-      timeouts.forEach((timeout) => {
-        clearTimeout(timeout);
-      });
-  }, [state, midi, onFinishOutput]);
-
-  useEffect(() => {
-    setTypedText([]);
-  }, [state.returnIndex]);
-
-  useEffect(() => {
-    if (!typedText || typedText.length === 0) return;
-    const { char, duration } = typedText.slice(-1)[0];
-    midi.playNoteTime(charToMidi(char), duration);
-  }, [typedText, midi]);
-
+>(({ state, midi }, ref) => {
+  const [cursor] = useState(<>&nbsp;</>);
   return (
-    <span className="h-full w-full break-all" ref={ref}>
-      <pre>
-        {typedText.map((note) => note.char).join("")}
-        {state.current === "outputting" ? (
-          <span
-            key="cursor"
-            className="cursor"
-            // className={currentIndex < text.length ? "cursor" : "cursor blinking"}
-          >
-            &nbsp;
-          </span>
-        ) : (
-          <span key="cursor"></span>
-        )}
-      </pre>
-    </span>
+    <div className="h-full w-full break-all">
+      <pre ref={ref} className="inline"></pre>
+      <span></span>
+      {state.current === "outputting" ? (
+        <span
+          key="cursor"
+          className="cursor"
+          // className={currentIndex < text.length ? "cursor" : "cursor blinking"}
+        >
+          {cursor}
+        </span>
+      ) : (
+        <span key="cursor"></span>
+      )}
+    </div>
   );
 });
 

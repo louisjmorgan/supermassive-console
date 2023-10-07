@@ -9,7 +9,7 @@ const MusicalInput = React.forwardRef<
   HTMLSpanElement,
   {
     midi: Midi;
-    processCommand: () => void;
+    processCommand: (state: TerminalState) => void;
     state: TerminalState;
   }
 >(({ midi, processCommand, state }, ref) => {
@@ -43,7 +43,7 @@ const MusicalInput = React.forwardRef<
         case "Enter":
           if (e.repeat) return;
           e.preventDefault();
-          processCommand();
+          processCommand(state);
 
           return;
 

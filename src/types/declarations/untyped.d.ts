@@ -7,3 +7,8 @@ declare module "jzz-midi-smf" {
   const SMF: any;
   export = SMF;
 }
+
+declare module "um-sequencer" {
+  const Sequencer: any;
+  export = Sequencer;
+}

@@ -5,7 +5,7 @@ const navigator: any = JZZ;
 const setupJZZ = async () => {
   const midi = await JZZ();
   console.log(midi.info());
-  const port = await midi.openMidiOut(1);
+  const port = await midi.openMidiOut(0);
   return port;
 };
 
@@ -44,7 +44,10 @@ function useMidi(): Midi {
 
   const playNoteTime = useCallback(
     (note: number, wait: number) =>
-      port.current?.send([0x90, note, 127]).wait(wait).send([0x90, note, 0]), // note on
+      port.current
+        ?.send([0x90, note, 127])
+        .wait(wait * 1000)
+        .send([0x90, note, 0]),
     []
   );
 
