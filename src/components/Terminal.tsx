@@ -1,4 +1,4 @@
-import useMidi from "@/hooks/useMidi";
+import useMidi, { Midi } from "@/hooks/useMidi";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import MusicalInput from "./MusicalInput";
 import MusicalOutput from "./MusicalOutput";
@@ -49,13 +49,19 @@ const sequence = [
   },
 ];
 
-function Terminal({ midiFiles }: { midiFiles: Record<string, TrackJSON[]> }) {
+function Terminal({
+  midi,
+  midiFiles,
+}: {
+  midi: Midi;
+  midiFiles: Record<string, TrackJSON[]>;
+}) {
+  console.log("midi", midi);
   // capture key and click events to prevent focus leaving input
   useSwallowKeys();
 
   console.log(midiFiles);
 
-  const midi = useMidi();
   const inputRef = useRef<HTMLSpanElement>(null);
   const outputRef = useRef<HTMLPreElement>(null);
 
@@ -66,16 +72,9 @@ function Terminal({ midiFiles }: { midiFiles: Record<string, TrackJSON[]> }) {
 
   const [state, setState] = useState<TerminalState>({
     current: "outputting",
-    // output: midiFiles["maryhadalittlelamb"][0].notes.map((note) => ({
-    //   char: midiToChar(note.midi),
-    //   time: note.time,
-    //   duration: note.duration,
-    // })),
     returnIndex: 0,
     log: [],
   });
-
-  const [hasStarted, setStarted] = useState(false);
 
   const onFinishOutput = useCallback(() => {
     setState((prev) => ({ ...prev, current: "awaiting input" }));
@@ -88,14 +87,12 @@ function Terminal({ midiFiles }: { midiFiles: Record<string, TrackJSON[]> }) {
       const callback = (note: Note, index: number) => () => {
         if (!outputRef.current) return;
         outputRef.current.innerText += note.char;
-        midi.playNoteTime(charToMidi(note.char), note.duration * 60);
+        midi.playNoteTime(charToMidi(note.char), 127, note.duration * 60);
       };
       const sequence = noteList.map((note, index) => ({
         time: note.time,
         callback: callback(note, index),
       }));
-
-      console.log(sequence);
 
       sequencer.current.play(sequence, {
         onStop: onFinishOutput,
@@ -105,7 +102,6 @@ function Terminal({ midiFiles }: { midiFiles: Record<string, TrackJSON[]> }) {
   );
 
   const onStart = useCallback(() => {
-    setStarted(true);
     let audioContext = new window.AudioContext();
     sequencer.current = Sequencer(() => audioContext.currentTime, {
       useWorker: true,
@@ -119,6 +115,12 @@ function Terminal({ midiFiles }: { midiFiles: Record<string, TrackJSON[]> }) {
       }))
     );
   }, [onStartSequence, midiFiles]);
+
+  useEffect(() => {
+    if (sequencer.current?.isPlaying()) return;
+    console.log("start");
+    onStart();
+  }, [onStart]);
 
   const onProcessCommand = useCallback(
     (prevState: TerminalState) => {
@@ -151,17 +153,12 @@ function Terminal({ midiFiles }: { midiFiles: Record<string, TrackJSON[]> }) {
           {line}
         </pre>
       ))}
-      {hasStarted ? (
-        <MusicalOutput
-          midi={midi}
-          state={state}
-          onFinishOutput={onFinishOutput}
-          ref={outputRef}
-        />
-      ) : (
-        <button onClick={onStart}>Click to start</button>
-      )}
-
+      <MusicalOutput
+        midi={midi}
+        state={state}
+        onFinishOutput={onFinishOutput}
+        ref={outputRef}
+      />
       <MusicalInput
         midi={midi}
         processCommand={onProcessCommand}

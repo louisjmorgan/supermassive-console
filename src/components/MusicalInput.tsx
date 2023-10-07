@@ -58,6 +58,7 @@ const MusicalInput = React.forwardRef<
           }
           midi.playNoteTime(
             charToMidi(ref.current.innerText.slice(-1)[0]),
+            127,
             100
           );
           return;

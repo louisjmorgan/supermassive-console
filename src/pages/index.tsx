@@ -1,15 +1,21 @@
+import SequencerForm from "@/components/SequencerForm";
 import Terminal from "@/components/Terminal";
+import { Midi } from "@/hooks/useMidi";
 import { midToJson } from "@/lib/midi";
 import { TrackJSON } from "@tonejs/midi";
 
 export default function Home({
+  midi,
   midiFiles,
 }: {
+  midi: Midi;
   midiFiles: Record<string, TrackJSON[]>;
 }) {
   return (
     <main>
-      <Terminal midiFiles={midiFiles} />
+      {/* <Terminal midi={midi} midiFiles={midiFiles} />
+       */}
+      <SequencerForm midi={midi} />
     </main>
   );
 }
