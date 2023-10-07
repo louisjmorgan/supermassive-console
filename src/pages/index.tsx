@@ -13,9 +13,9 @@ export default function Home({
 }) {
   return (
     <main>
-      {/* <Terminal midi={midi} midiFiles={midiFiles} />
-       */}
-      <SequencerForm midi={midi} />
+      <Terminal midi={midi} midiFiles={midiFiles} />
+
+      {/* <SequencerForm midi={midi} /> */}
     </main>
   );
 }
