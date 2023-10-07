@@ -1,6 +1,6 @@
 import { Midi } from "@/hooks/useMidi";
 import React, { useCallback, useEffect, useRef } from "react";
-import Sequencer from "um-sequencer";
+import Sequencer from "@/lib/sequencer";
 import { useForm } from "react-hook-form";
 import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { stepAraryToMidiSequence } from "@/lib/midi";
@@ -32,10 +32,11 @@ function SequencerForm({ midi }: { midi: Midi }) {
   const sequencer = useRef<any>();
 
   useEffect(() => {
+    if (sequencer.current?.isPlaying()) return;
     let audioContext = new window.AudioContext();
     sequencer.current = Sequencer(() => audioContext.currentTime, {
-      useWorker: true,
       interval: 0.001,
+      useWorker: true,
     });
   }, []);
 
@@ -60,17 +61,17 @@ function SequencerForm({ midi }: { midi: Midi }) {
       INTERVAL
     );
     const callback = (note: Note, index: number) => () => {
-      midi.playNoteTime(60, note.velocity, note.duration);
+      //   midi.playNoteTime(60, note.velocity, note.duration);
+      console.log(note);
     };
     const sequence = steps.map((note, index) => ({
       time: note.time,
       callback: callback(note, index),
     }));
 
-    console.log(sequence);
+    console.log(sequence, duration * kickOptions.length);
 
     sequencer.current.play(sequence, {
-      loop: true,
       loopLength: duration * kickOptions.length,
     });
 

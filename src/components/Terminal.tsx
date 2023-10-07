@@ -5,7 +5,7 @@ import MusicalOutput from "./MusicalOutput";
 import { TrackJSON } from "@tonejs/midi";
 import { charToMidi, createEqualDurationOutput, midiToChar } from "@/lib/midi";
 import useSwallowKeys from "@/hooks/useSwallowKeys";
-import Sequencer from "um-sequencer";
+import Sequencer from "@/lib/sequencer";
 
 export interface Note {
   char: string;
@@ -56,11 +56,8 @@ function Terminal({
   midi: Midi;
   midiFiles: Record<string, TrackJSON[]>;
 }) {
-  console.log("midi", midi);
   // capture key and click events to prevent focus leaving input
   useSwallowKeys();
-
-  console.log(midiFiles);
 
   const inputRef = useRef<HTMLSpanElement>(null);
   const outputRef = useRef<HTMLPreElement>(null);
@@ -110,8 +107,8 @@ function Terminal({
     onStartSequence(
       midiFiles["maryhadalittlelamb"][0].notes.map((note) => ({
         char: midiToChar(note.midi),
-        time: note.time * 0.6,
-        duration: note.duration * 0.6,
+        time: note.time,
+        duration: note.duration,
       }))
     );
   }, [onStartSequence, midiFiles]);
