@@ -6,19 +6,28 @@ import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { stepAraryToMidiSequence } from "@/lib/midi";
 
 const kickOptions = [
-  [1, 0, 0, 0],
-  [1, 1, 1, 1],
-  [0, 0, 1, 0],
-  [0, 0, 0, 1],
+  [1, 0, 0, 1, 1, 0, 0, 0],
+  [1, 0, 1, 0, 1, 0, 1, 0],
+  [1, 0, 1, 0, 1, 0, 1, 1],
+  [1, 0, 1, 1, 1, 0, 1, 0],
+];
+
+const snareOptions = [
+  [0, 0, 1, 0, 0, 0, 1, 0],
+  [1, 0, 1, 0, 1, 0, 1, 0],
+  [0, 1, 0, 0, 0, 1, 0, 0],
+  [0, 0, 1, 1, 0, 0, 1, 0],
 ];
 
 const BPM = 140;
-const INTERVAL = 1;
+const INTERVAL = 0.5;
+const STEPS_COUNT = 8;
 
-export interface Note {
+export interface Step {
   velocity: number;
   duration: number;
   time: number;
+  note: number;
 }
 
 function SequencerForm({ midi }: { midi: Midi }) {
@@ -52,30 +61,34 @@ function SequencerForm({ midi }: { midi: Midi }) {
   );
 
   const updateSequence = useCallback(() => {
-    const { kick } = getValues();
+    const { kick, snare } = getValues();
     const duration = INTERVAL / (BPM / 60);
 
-    const steps = stepAraryToMidiSequence(
+    const kickSteps = stepAraryToMidiSequence(
       kickOptions[Number(kick)],
-      BPM,
-      INTERVAL
+      60,
+      duration
     );
-    const callback = (note: Note, index: number) => () => {
-      //   midi.playNoteTime(60, note.velocity, note.duration);
-      console.log(note);
+
+    const snareSteps = stepAraryToMidiSequence(
+      snareOptions[Number(snare)],
+      65,
+      duration
+    );
+    const callback = (step: Step) => () => {
+      midi.playNoteTime(step.note, step.velocity, step.duration * 0.9);
+      // console.log(note);
     };
-    const sequence = steps.map((note, index) => ({
-      time: note.time,
-      callback: callback(note, index),
+    const sequence = [...kickSteps, ...snareSteps].map((step, index) => ({
+      time: step.time,
+      callback: callback(step),
     }));
 
-    console.log(sequence, duration * kickOptions.length);
-
+    console.log(sequence, duration * STEPS_COUNT);
+    if (sequencer.current.isPlaying()) sequencer.current.stop();
     sequencer.current.play(sequence, {
-      loopLength: duration * kickOptions.length,
+      loopLength: duration * STEPS_COUNT,
     });
-
-    console.log(sequence);
   }, [getValues, midi]);
 
   return (
@@ -87,6 +100,15 @@ function SequencerForm({ midi }: { midi: Midi }) {
           })}
         >
           {kickOptions.map((opt, index) => (
+            <option key={index}>{index}</option>
+          ))}
+        </select>{" "}
+        <select
+          {...register("snare", {
+            onChange: updateSequence,
+          })}
+        >
+          {snareOptions.map((opt, index) => (
             <option key={index}>{index}</option>
           ))}
         </select>

@@ -12,15 +12,15 @@ export const createEqualDurationOutput = (output: string, duration: number) =>
 // interval is a decimal representing step length e.g. 1 is 1 beat / 1 quarter note
 export const stepAraryToMidiSequence = (
   array: number[],
-  bpm: number,
-  interval: number
+  note: number,
+  duration: number
 ) => {
-  const duration = interval / (bpm / 60);
   return array
     .map((step, index) => ({
       velocity: step * 127,
       time: duration * index,
       duration: duration,
+      note: note,
     }))
     .filter((step) => !!step.velocity);
 };

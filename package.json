@@ -16,7 +16,6 @@
     "react": "latest",
     "react-dom": "latest",
     "react-hook-form": "^7.47.0",
-    "um-sequencer": "file:./um-sequencer",
     "use-debounce": "^9.0.4"
   },
   "devDependencies": {

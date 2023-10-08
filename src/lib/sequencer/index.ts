@@ -57,6 +57,7 @@ const Sequencer = (getCurrentTime, options: SequencerOptions = {}) => {
   const dispatch = () => {
     const callback = _events[_nextEventIndex].callback;
     if (callback) {
+      console.log(_nextEventIndex);
       callback(_nextEventTime);
     }
   };
