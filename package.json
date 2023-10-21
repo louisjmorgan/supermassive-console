@@ -16,6 +16,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-hook-form": "^7.47.0",
+    "tone": "^14.7.77",
     "use-debounce": "^9.0.4"
   },
   "devDependencies": {
