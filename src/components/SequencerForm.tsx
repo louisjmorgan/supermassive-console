@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { stepAraryToMidiSequence } from "@/lib/midi";
 import * as Tone from "tone";
+import { WebMidi } from "webmidi";
+import * as WAAClock from "waaclock";
 
 const kickOptions = [
   [1, 0, 0, 1, 1, 0, 0, 0],
@@ -33,7 +35,21 @@ export interface Step {
   note: number;
 }
 
-function SequencerForm({ midi }: { midi: Midi }) {
+var beats = {},
+  tempo = BPM,
+  signature = 4,
+  beatDur = 60 / tempo,
+  barDur = signature * beatDur;
+
+// This function deactivates the beat `beatInd` of `track`.
+var stopBeat = function (track, beatInd) {
+  var event = beats[track][beatInd];
+  event.clear();
+};
+
+// ---------- Just some helpers ---------- //
+// This helper calculates the absolute time of the upcoming `beatInd`.
+var nextBeatTime = function SequencerForm({ midi }: { midi: Midi }) {
   const {
     register,
     handleSubmit,
@@ -45,17 +61,36 @@ function SequencerForm({ midi }: { midi: Midi }) {
 
   const grid = useRef([]);
 
+  const clock = useRef<any>(null);
+  const context = useRef<any>(null);
+
+  useEffect(() => {
+    context.current = new AudioContext();
+    clock.current = new WAAClock(context, { toleranceEarly: 0.1 });
+  }, []);
+
+  const nextBeatTime = useCallback(function (beatInd: number) {
+    var currentTime = context.current.currentTime,
+      currentBar = Math.floor(currentTime / barDur),
+      currentBeat = Math.round(currentTime % barDur);
+    if (currentBeat < beatInd) return currentBar * barDur + beatInd * beatDur;
+    else return (currentBar + 1) * barDur + beatInd * beatDur;
+  }, []);
+
   const sequencerLoop = useCallback(() => {
     // This is our callback function. It will execute repeatedly
     const repeat = (time) => {
       grid.current.forEach((row, index) => {
         let step = row[beat.current];
-        var timingOffset = performance.now() / 1000 - Tone.context.currentTime;
-
-        midi.playNoteOn(
+        console.log(step);
+        const offset = WebMidi.time - Tone.context.currentTime * 1000;
+        const offsetTime = time * 1000 + offset;
+        const duration = (INTERVAL / (BPM / 60)) * 1000 - 10;
+        midi.playNoteTime(
           noteMap[index],
-          step * 127,
-          timingOffset
+          step,
+          (time - Tone.context.currentTime) * 1000,
+          duration
           // (INTERVAL / (BPM / 60)) * 0.9
         );
       });
@@ -69,12 +104,40 @@ function SequencerForm({ midi }: { midi: Midi }) {
     Tone.Transport.scheduleRepeat(repeat, "8n");
   }, [midi]);
 
+  const startClock = useCallback(() => {
+    clock.current.start();
+
+    // The following code highlights the current beat in the UI by calling the function `uiNextBeat` periodically.
+    clock.current
+      .callbackAtTime(() => console.log(beat), nextBeatTime(0))
+      .repeat(beatDur)
+      .tolerance({ late: 100 });
+  }, [nextBeatTime]);
+
   const updateGrid = useCallback(() => {
     const { kick, snare } = getValues();
 
     grid.current = [kickOptions[Number(kick)], snareOptions[Number(snare)]];
 
+    grid.current.forEach((row, trackIndex) => {
+      row.forEach((step, beatIndex) => {
+        beats[trackIndex][beatIndex].clear();
+        var event = clock.current.callbackAtTime(function (event) {
+          midi.playNoteOn(
+            noteMap[trackIndex],
+            step,
+            event.deadline
+            // (INTERVAL / (BPM / 60)) * 0.9
+          );
+        }, nextBeatTime(beatIndex));
+        event.repeat(barDur);
+        event.tolerance({ late: 0.01 });
+        beats[trackIndex][beatIndex] = event;
+      });
+    });
+
     if (Tone.Transport.state !== "started") {
+      console.log("start sequencer");
       Tone.Transport.start();
       sequencerLoop();
     }
@@ -104,6 +167,6 @@ function SequencerForm({ midi }: { midi: Midi }) {
       </form>
     </div>
   );
-}
+};
 
 export default SequencerForm;

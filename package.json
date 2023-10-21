@@ -17,7 +17,9 @@
     "react-dom": "latest",
     "react-hook-form": "^7.47.0",
     "tone": "^14.7.77",
-    "use-debounce": "^9.0.4"
+    "use-debounce": "^9.0.4",
+    "waaclock": "^0.5.4",
+    "webmidi": "^3.1.6"
   },
   "devDependencies": {
     "@types/node": "latest",
