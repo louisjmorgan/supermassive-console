@@ -15,9 +15,14 @@ export default function Home({
   const { clock, context } = useClock();
   return (
     <main>
-      {/* <Terminal midi={midi} midiFiles={midiFiles} /> */}
+      <Terminal
+        midi={midi}
+        midiFiles={midiFiles}
+        clock={clock}
+        context={context}
+      />
 
-      <SequencerForm midi={midi} clock={clock} context={context} />
+      {/* <SequencerForm midi={midi} clock={clock} context={context} /> */}
     </main>
   );
 }
