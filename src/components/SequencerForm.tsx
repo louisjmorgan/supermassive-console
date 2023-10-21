@@ -4,6 +4,7 @@ import Sequencer from "@/lib/sequencer";
 import { useForm } from "react-hook-form";
 import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { stepAraryToMidiSequence } from "@/lib/midi";
+import * as Tone from "tone";
 
 const kickOptions = [
   [1, 0, 0, 1, 1, 0, 0, 0],
@@ -18,6 +19,8 @@ const snareOptions = [
   [0, 1, 0, 0, 0, 1, 0, 0],
   [0, 0, 1, 1, 0, 0, 1, 0],
 ];
+
+const noteMap = [60, 65];
 
 const BPM = 140;
 const INTERVAL = 0.5;
@@ -38,65 +41,51 @@ function SequencerForm({ midi }: { midi: Midi }) {
     formState: { errors },
   } = useForm();
 
-  const sequencer = useRef<any>();
+  const beat = useRef(0);
 
-  useEffect(() => {
-    if (sequencer.current?.isPlaying()) return;
-    let audioContext = new window.AudioContext();
-    sequencer.current = Sequencer(() => audioContext.currentTime, {
-      interval: 0.001,
-      useWorker: true,
-    });
-  }, []);
+  const grid = useRef([]);
 
-  const debounced = useDebouncedCallback(
-    // function
-    (value) => {
-      //   setValue(value);
-      console.log("change");
-    },
-    // delay in ms
-    1000,
-    { maxWait: 200 }
-  );
+  const sequencerLoop = useCallback(() => {
+    // This is our callback function. It will execute repeatedly
+    const repeat = (time) => {
+      grid.current.forEach((row, index) => {
+        let step = row[beat.current];
+        var timingOffset = performance.now() / 1000 - Tone.context.currentTime;
 
-  const updateSequence = useCallback(() => {
-    const { kick, snare } = getValues();
-    const duration = INTERVAL / (BPM / 60);
-
-    const kickSteps = stepAraryToMidiSequence(
-      kickOptions[Number(kick)],
-      60,
-      duration
-    );
-
-    const snareSteps = stepAraryToMidiSequence(
-      snareOptions[Number(snare)],
-      65,
-      duration
-    );
-    const callback = (step: Step) => () => {
-      midi.playNoteTime(step.note, step.velocity, step.duration * 0.9);
-      // console.log(note);
+        midi.playNoteOn(
+          noteMap[index],
+          step * 127,
+          timingOffset
+          // (INTERVAL / (BPM / 60)) * 0.9
+        );
+      });
+      // increment the counter
+      beat.current = (beat.current + 1) % 8;
     };
-    const sequence = [...kickSteps, ...snareSteps].map((step, index) => ({
-      time: step.time,
-      callback: callback(step),
-    }));
 
-    console.log(sequence, duration * STEPS_COUNT);
-    if (sequencer.current.isPlaying()) sequencer.current.stop();
-    sequencer.current.play(sequence, {
-      loopLength: duration * STEPS_COUNT,
-    });
-  }, [getValues, midi]);
+    // set the tempo in beats per minute.
+    Tone.Transport.bpm.value = BPM;
+    // telling the transport to execute our callback function every eight note.
+    Tone.Transport.scheduleRepeat(repeat, "8n");
+  }, [midi]);
+
+  const updateGrid = useCallback(() => {
+    const { kick, snare } = getValues();
+
+    grid.current = [kickOptions[Number(kick)], snareOptions[Number(snare)]];
+
+    if (Tone.Transport.state !== "started") {
+      Tone.Transport.start();
+      sequencerLoop();
+    }
+  }, [getValues, sequencerLoop]);
 
   return (
     <div>
       <form>
         <select
           {...register("kick", {
-            onChange: updateSequence,
+            onChange: updateGrid,
           })}
         >
           {kickOptions.map((opt, index) => (
@@ -105,7 +94,7 @@ function SequencerForm({ midi }: { midi: Midi }) {
         </select>{" "}
         <select
           {...register("snare", {
-            onChange: updateSequence,
+            onChange: updateGrid,
           })}
         >
           {snareOptions.map((opt, index) => (

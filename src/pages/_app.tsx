@@ -2,6 +2,7 @@ import useMidi from "@/hooks/useMidi";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { useCallback, useState } from "react";
+import * as Tone from "tone";
 
 export default function App({ Component, pageProps }: AppProps) {
   const midi = useMidi();
@@ -10,6 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   const onStart = useCallback(() => {
     setStarted(true);
+    Tone.start();
   }, []);
 
   return (
