@@ -1,8 +1,9 @@
-import React, { Ref, useCallback, useEffect, useRef, useState } from "react";
+import React, { Ref, useCallback, useEffect, useRef } from "react";
+import * as JZZ from "jzz";
 import { WebMidi } from "webmidi";
 
 export interface Midi {
-  port: any;
+  port: Ref<any>;
   playNoteOn: (note: number, velocity?: number, wait?: number) => any;
   playNoteOff: (note: number, velocity?: number, wait?: number) => any;
   playNoteTime: (
@@ -17,9 +18,8 @@ export interface Midi {
 const createTimeString = (time: number) => `+${time}`;
 
 function useMidi(): any {
-  const [port, setPort] = useState<any>();
+  const port = useRef<any>();
   useEffect(() => {
-    console.log("initialize");
     // navigator.requestMIDIAccess().then(
     //   (e: Event) => console.log("success"),
     //   (e: Event) => console.log("fail")
@@ -32,7 +32,7 @@ function useMidi(): any {
     function onEnabled() {
       // Inputs
 
-      setPort(WebMidi.getOutputByName("01. Internal MIDI"));
+      port.current = WebMidi.getOutputByName("01. Internal MIDI");
     }
   }, []);
 

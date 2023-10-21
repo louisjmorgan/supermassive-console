@@ -13,7 +13,12 @@ export interface Midi {
   port: Ref<any>;
   playNoteOn: (note: number, velocity?: number, wait?: number) => any;
   playNoteOff: (note: number, velocity?: number) => any;
-  playNoteTime: (note: number, velocity: number, wait: number) => any;
+  playNoteTime: (
+    note: number,
+    velocity: number,
+    duration: number,
+    wait: number
+  ) => any;
   flushNotes: () => any;
 }
 
@@ -45,9 +50,9 @@ function useMidi(): Midi {
   );
 
   const playNoteTime = useCallback(
-    (note: number, velocity: number, wait: number) => {
+    (note: number, velocity: number, duration: number, wait: number = 0) => {
       console.log(wait);
-      return port.current.note(0, note, velocity, wait * 1000);
+      return port.current.wait(wait).note(0, note, velocity, duration);
     },
     []
   );
