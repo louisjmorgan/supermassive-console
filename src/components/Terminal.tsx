@@ -84,25 +84,21 @@ function Terminal({
   });
 
   const onFinishOutput = useCallback(() => {
+    console.log("finish");
     setState((prev) => ({ ...prev, current: "awaiting input" }));
   }, []);
 
-  const sequencer = useRef<any>();
-
   const onStartSequence = useCallback(
     (noteList: Note[]) => {
-      const callback = (note: Note, index: number) => () => {
-        if (!outputRef.current) return;
-        midi.playNoteTime(charToMidi(note.char), 127, note.duration * 60);
-      };
+      console.log("start sequence");
       const currentTime = context.current.currentTime;
       // schedule notes
       noteList.forEach((note: Note, index: number) => {
         clock.current.callbackAtTime(function (event) {
           outputRef.current.innerText += note.char;
-          console.log("tick");
+          console.log(note);
           midi.port.channels[1].playNote(charToMidi(note.char), {
-            duration: note.duration,
+            duration: note.duration * 1000 * 10,
             time: event.deadline * 1000,
             attack: 1,
           });
@@ -112,7 +108,7 @@ function Terminal({
       // schedule finish
       clock.current.callbackAtTime((event) => {
         onFinishOutput();
-      }, currentTime + noteList.slice(-1)[0].time + noteList.slice(-1)[0].duration + 100);
+      }, currentTime + (noteList.slice(-1)[0].time + noteList.slice(-1)[0].duration));
     },
 
     [midi, onFinishOutput, clock, context]
@@ -131,7 +127,6 @@ function Terminal({
 
   useEffect(() => {
     if (!clock.current || !context.current) return;
-    // if (sequencer.current?.isPlaying()) return;
     console.log("start");
     onStart();
   }, [onStart, context, clock]);

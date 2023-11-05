@@ -38,35 +38,35 @@ function useMidi(): any {
 
   console.log(port);
 
-  const playNoteOn = useCallback(
-    (note: number, velocity: number = 1, wait = 0) =>
-      // port.current?.wait(wait).send([0x90, note, velocity]), // note on
-      {
-        console.log(wait);
-        return port.current.playNote(note, {
-          time: wait,
-        });
-      },
-    []
-  );
+  // const playNoteOn = useCallback(
+  //   (note: number, velocity: number = 1, wait = 0) =>
+  //     // port.current?.wait(wait).send([0x90, note, velocity]), // note on
+  //     {
+  //       console.log(wait);
+  //       return port.current.playNote(note, {
+  //         time: wait,
+  //       });
+  //     },
+  //   []
+  // );
 
-  const playNoteOff = useCallback(
-    (note: number, velocity: number = 1, wait = 0) =>
-      // port.current?.send([0x90, note, 0]), // note on
-      port.current.stopNote(note, { time: createTimeString(wait) }),
-    []
-  );
+  // const playNoteOff = useCallback(
+  //   (note: number, velocity: number = 1, wait = 0) =>
+  //     // port.current?.send([0x90, note, 0]), // note on
+  //     port.current.stopNote(note, { time: createTimeString(wait) }),
+  //   []
+  // );
 
-  const playNoteTime = useCallback(
-    (note: number, velocity: number, duration: number, wait: number = 0) => {
-      console.log(note, duration, wait);
-      return port.current.playNote(note, {
-        duration,
-        time: wait,
-      });
-    },
-    []
-  );
+  // const playNoteTime = useCallback(
+  //   (note: number, velocity: number, duration: number, wait: number = 0) => {
+  //     console.log(note, duration, wait);
+  //     return port.current.playNote(note, {
+  //       duration,
+  //       time: wait,
+  //     });
+  //   },
+  //   []
+  // );
 
   const flushNotes = useCallback(() => {
     port.current.sendAllNotesOff();
@@ -95,9 +95,6 @@ function useMidi(): any {
 
   return {
     port,
-    playNoteOn,
-    playNoteOff,
-    playNoteTime,
     flushNotes,
   };
 }

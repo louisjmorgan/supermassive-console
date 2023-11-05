@@ -19,7 +19,8 @@
     "tone": "^14.7.77",
     "use-debounce": "^9.0.4",
     "waaclock": "^0.5.4",
-    "webmidi": "^3.1.6"
+    "webmidi": "^3.1.6",
+    "zyklus": "^0.1.4"
   },
   "devDependencies": {
     "@types/node": "latest",

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+
 import * as WAAClock from "waaclock";
 
 export interface ClockProps {
@@ -16,8 +17,26 @@ function useClock() {
   useEffect(() => {
     context.current = new AudioContext();
     clock.current = new WAAClock(context.current, {
-      toleranceEarly: 0.1,
+      // tickMethod: "manual",
     });
+
+    // const _clockWorker = new Worker(
+    //   new URL("../lib/sequencer/clockWorker.js", import.meta.url),
+    //   {
+    //     type: "module",
+    //   }
+    // );
+    console.log(clock.current);
+    // _clockWorker.onmessage = () => {
+    //   clock.current._tick();
+    // };
+    clock.current.start();
+    // _clockWorker.postMessage({
+    //   action: "start",
+    //   interval: (256 * 1000) / context.current.sampleRate,
+    // });
+
+    // return () => clock.current.stop();
   }, []);
 
   return {

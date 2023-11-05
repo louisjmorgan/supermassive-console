@@ -15,14 +15,14 @@ export default function Home({
   const { clock, context } = useClock();
   return (
     <main>
-      <Terminal
+      {/* <Terminal
         midi={midi}
         midiFiles={midiFiles}
         clock={clock}
         context={context}
-      />
+      /> */}
 
-      {/* <SequencerForm midi={midi} clock={clock} context={context} /> */}
+      <SequencerForm midi={midi} clock={clock} context={context} />
     </main>
   );
 }
@@ -45,8 +45,6 @@ export async function getStaticProps() {
     }),
     {}
   );
-
-  console.log(midiFiles);
 
   return {
     props: {

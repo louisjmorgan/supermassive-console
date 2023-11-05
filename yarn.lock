@@ -2585,3 +2585,8 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.npmjs.org/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zyklus@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/zyklus/-/zyklus-0.1.4.tgz#229b2966fd1126ef72c6004697269118762bdcd5"
+  integrity sha512-hbv2cyy4nOI7P8nL8b3ki1jswoLzkUzewPgCLDdDfABryDkV5iO8DAbU25OgO5ShRZHLjXJIylwv5PJQPl3Mpw==
