@@ -1,5 +1,11 @@
 import useMidi, { Midi } from "@/hooks/useMidi";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import MusicalInput from "./MusicalInput";
 import MusicalOutput from "./MusicalOutput";
 import { TrackJSON } from "@tonejs/midi";
@@ -52,9 +58,13 @@ const sequence = [
 function Terminal({
   midi,
   midiFiles,
+  clock,
+  context,
 }: {
   midi: Midi;
   midiFiles: Record<string, TrackJSON[]>;
+  clock: MutableRefObject<any>;
+  context: MutableRefObject<any>;
 }) {
   // capture key and click events to prevent focus leaving input
   useSwallowKeys();
@@ -74,36 +84,38 @@ function Terminal({
   });
 
   const onFinishOutput = useCallback(() => {
+    console.log("finish");
     setState((prev) => ({ ...prev, current: "awaiting input" }));
   }, []);
 
-  const sequencer = useRef<any>();
-
   const onStartSequence = useCallback(
     (noteList: Note[]) => {
-      const callback = (note: Note, index: number) => () => {
-        if (!outputRef.current) return;
-        outputRef.current.innerText += note.char;
-        midi.playNoteTime(charToMidi(note.char), 127, note.duration * 60);
-      };
-      const sequence = noteList.map((note, index) => ({
-        time: note.time,
-        callback: callback(note, index),
-      }));
-
-      sequencer.current.play(sequence, {
-        onStop: onFinishOutput,
+      console.log("start sequence");
+      const currentTime = context.current.currentTime;
+      // schedule notes
+      noteList.forEach((note: Note, index: number) => {
+        clock.current.callbackAtTime(function (event) {
+          outputRef.current.innerText += note.char;
+          console.log(note);
+          midi.port.channels[1].playNote(charToMidi(note.char), {
+            duration: note.duration * 1000 * 10,
+            time: event.deadline * 1000,
+            attack: 1,
+          });
+        }, currentTime + note.time);
       });
+
+      // schedule finish
+      clock.current.callbackAtTime((event) => {
+        onFinishOutput();
+      }, currentTime + (noteList.slice(-1)[0].time + noteList.slice(-1)[0].duration));
     },
-    [midi, onFinishOutput]
+
+    [midi, onFinishOutput, clock, context]
   );
 
   const onStart = useCallback(() => {
-    let audioContext = new window.AudioContext();
-    sequencer.current = Sequencer(() => audioContext.currentTime, {
-      useWorker: true,
-      interval: 0.01,
-    });
+    clock.current.start();
     onStartSequence(
       midiFiles["maryhadalittlelamb"][0].notes.map((note) => ({
         char: midiToChar(note.midi),
@@ -111,13 +123,13 @@ function Terminal({
         duration: note.duration,
       }))
     );
-  }, [onStartSequence, midiFiles]);
+  }, [onStartSequence, midiFiles, clock]);
 
   useEffect(() => {
-    if (sequencer.current?.isPlaying()) return;
+    if (!clock.current || !context.current) return;
     console.log("start");
     onStart();
-  }, [onStart]);
+  }, [onStart, context, clock]);
 
   const onProcessCommand = useCallback(
     (prevState: TerminalState) => {

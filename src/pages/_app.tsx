@@ -1,11 +1,14 @@
+import useClock from "@/hooks/useClock";
 import useMidi from "@/hooks/useMidi";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { useCallback, useEffect, useState } from "react";
 import { Socket, io } from "socket.io-client";
+import * as Tone from "tone";
 
 export default function App({ Component, pageProps }: AppProps) {
   const midi = useMidi();
+
   console.log(midi);
   const [hasStarted, setStarted] = useState(false);
 

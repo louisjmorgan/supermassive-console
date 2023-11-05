@@ -23,7 +23,7 @@ const MusicalInput = React.forwardRef<
     setTyping(false);
     const key = e.key;
     if (DISALLOWED_KEYS.includes(key)) return;
-    midi.playNoteOff(charToMidi(key));
+    midi.port.channels[1].sendNoteOff(charToMidi(key));
   };
 
   const onKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
@@ -56,10 +56,12 @@ const MusicalInput = React.forwardRef<
           ) {
             return;
           }
-          midi.playNoteTime(
+          midi.port.channels[1].playNote(
             charToMidi(ref.current.innerText.slice(-1)[0]),
-            127,
-            100
+            {
+              attack: 1,
+              time: 100,
+            }
           );
           return;
 
@@ -69,7 +71,7 @@ const MusicalInput = React.forwardRef<
             return;
           }
           if (key.length !== 1) return;
-          midi.playNoteOn(charToMidi(key));
+          midi.port.channels[1].sendNoteOn(charToMidi(key));
       }
     },
     [midi, ref, processCommand, setTyping, state]

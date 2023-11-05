@@ -1,5 +1,6 @@
 import SequencerForm from "@/components/SequencerForm";
 import Terminal from "@/components/Terminal";
+import useClock from "@/hooks/useClock";
 import { Midi } from "@/hooks/useMidi";
 import { midToJson } from "@/lib/midi";
 import { TrackJSON } from "@tonejs/midi";
@@ -11,11 +12,17 @@ export default function Home({
   midi: Midi;
   midiFiles: Record<string, TrackJSON[]>;
 }) {
+  const { clock, context } = useClock();
   return (
     <main>
-      {/* <Terminal midi={midi} midiFiles={midiFiles} /> */}
+      {/* <Terminal
+        midi={midi}
+        midiFiles={midiFiles}
+        clock={clock}
+        context={context}
+      /> */}
 
-      <SequencerForm midi={midi} />
+      <SequencerForm midi={midi} clock={clock} context={context} />
     </main>
   );
 }
@@ -38,8 +45,6 @@ export async function getStaticProps() {
     }),
     {}
   );
-
-  console.log(midiFiles);
 
   return {
     props: {
