@@ -5,7 +5,7 @@ const navigator: any = JZZ;
 const setupJZZ = async () => {
   const midi = await JZZ();
   console.log(midi.info());
-  const port = await midi.openMidiOut(1);
+  const port = await midi.openMidiOut(0);
   return port;
 };
 
