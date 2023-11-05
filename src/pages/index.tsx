@@ -1,29 +1,38 @@
 import SequencerForm from "@/components/SequencerForm";
 import Terminal from "@/components/Terminal";
 import useClock from "@/hooks/useClock";
-import { Midi } from "@/hooks/useMidi";
+import useMidi, { Midi } from "@/hooks/useMidi";
+import useStateRouter from "@/hooks/useStateRouter";
 import { midToJson } from "@/lib/midi";
 import { TrackJSON } from "@tonejs/midi";
+import { Socket } from "socket.io-client";
+import { CurrentState } from "./_app";
 
 export default function Home({
-  midi,
   midiFiles,
+  currentState,
+  socket,
 }: {
-  midi: Midi;
   midiFiles: Record<string, TrackJSON[]>;
+  currentState: CurrentState;
+  socket: Socket;
 }) {
+  const midi = useMidi();
   const { clock, context } = useClock();
-  return (
-    <main>
-      {/* <Terminal
-        midi={midi}
-        midiFiles={midiFiles}
-        clock={clock}
-        context={context}
-      /> */}
+  const { CurrentComponent } = useStateRouter({
+    currentState,
+  });
 
-      <SequencerForm midi={midi} clock={clock} context={context} />
-    </main>
+  return CurrentComponent ? (
+    <CurrentComponent
+      clock={clock}
+      context={context}
+      midi={midi}
+      midiFiles={midiFiles}
+      socket={socket}
+    />
+  ) : (
+    <>N/A</>
   );
 }
 

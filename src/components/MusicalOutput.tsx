@@ -9,7 +9,6 @@ const MusicalOutput = React.forwardRef<
   {
     state: TerminalState;
     midi: Midi;
-    onFinishOutput: () => void;
   }
 >(({ state, midi }, ref) => {
   const [cursor] = useState(<>&nbsp;</>);

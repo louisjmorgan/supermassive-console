@@ -162,12 +162,7 @@ function Terminal({
           {line}
         </pre>
       ))}
-      <MusicalOutput
-        midi={midi}
-        state={state}
-        onFinishOutput={onFinishOutput}
-        ref={outputRef}
-      />
+      <MusicalOutput midi={midi} state={state} ref={outputRef} />
       <MusicalInput
         midi={midi}
         processCommand={onProcessCommand}

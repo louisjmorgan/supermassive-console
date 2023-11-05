@@ -1,54 +1,34 @@
-import useClock from "@/hooks/useClock";
 import useMidi from "@/hooks/useMidi";
+import useSocket from "@/hooks/useSocket";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { useCallback, useEffect, useState } from "react";
-import { Socket, io } from "socket.io-client";
-import * as Tone from "tone";
+
+type Tree<T> = Record<string, T>;
+interface NestedTree extends Tree<NestedTree> {}
+interface NestedArray<T> extends Array<NestedArray<T>> {}
+
+export interface CurrentState {
+  state_tree: NestedTree;
+  state: NestedArray<string>;
+  triggers: string[];
+}
 
 export default function App({ Component, pageProps }: AppProps) {
-  const midi = useMidi();
-
-  console.log(midi);
   const [hasStarted, setStarted] = useState(false);
 
+  // wait for user input so that audio context works
   const onStart = useCallback(() => {
     setStarted(true);
   }, []);
 
-  const [socketInstance, setSocketInstance] = useState<Socket>();
-  useEffect(() => {
-    console.log("connect");
-    const socket = io("localhost:5001/", {
-      transports: ["websocket"],
-      cors: {
-        origin: "http://localhost:3000/",
-      },
-    });
-
-    setSocketInstance(socket);
-
-    socket.on("connect", (data: any) => {
-      console.log(data);
-    });
-    socket.on("state change", (data) => {
-      console.log(data);
-    });
-    // setLoading(false);
-
-    socket.on("disconnect", (data) => {
-      console.log(data);
-    });
-
-    return function cleanup() {
-      socket.disconnect();
-    };
-  }, []);
+  const [currentState, setCurrentState] = useState<CurrentState>();
+  const socket = useSocket({ setCurrentState });
 
   return (
     <div className="w-full text-green-600 font-mono text-xl">
       {hasStarted ? (
-        <Component {...pageProps} midi={midi} />
+        <Component {...pageProps} currentState={currentState} socket={socket} />
       ) : (
         <button onClick={onStart}>Click to start</button>
       )}

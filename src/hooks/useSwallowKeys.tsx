@@ -28,8 +28,10 @@ function useSwallowKeys() {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("keyup", onKey);
       document.removeEventListener("click", onClick);
+      document.removeEventListener("mousedown", onClick);
     };
   }, []);
+
   return;
 }
 
